@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽签系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --primary-light: #EEF2FF;
+            --bg: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --text: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --border: #E2E8F0;
+            --border-focus: #818CF8;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --error: #EF4444;
+            --error-light: #FEE2E2;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --info: #3B82F6;
+            --info-light: #DBEAFE;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text);
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--primary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-section {
+            margin-top: 24px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .status-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .status-item.drawn {
+            background: var(--success-light);
+            border-color: var(--success);
+        }
+
+        .status-item.current {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .status-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .status-empty {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .result-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .result-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 20px 0;
+            min-height: 70px;
+        }
+
+        .result-animating {
+            animation: bounce 0.1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .message.error {
+            background: var(--error-light);
+            color: var(--error);
+            border: 1px solid var(--error-light);
+        }
+
+        .message.success {
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid var(--success-light);
+        }
+
+        .message.info {
+            background: var(--info-light);
+            color: var(--info);
+            border: 1px solid var(--info-light);
+        }
+
+        .message.warning {
+            background: var(--warning-light);
+            color: var(--warning);
+            border: 1px solid var(--warning-light);
+        }
+
+        .draw-history {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .history-title {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-item {
+            background: var(--bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .history-item span {
+            color: var(--primary);
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(248, 250, 252, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .section-divider {
+            height: 8px;
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            margin: 32px 0;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .result-display {
+                font-size: 3rem;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>抽签系统</h1>
+            <p class="subtitle">公正公平 · 随机抽取</p>
+        </header>
+
+        <div id="messageArea"></div>
+
+        <div class="card">
+            <h2 class="card-title">参与抽签</h2>
+            
+            <div class="form-group">
+                <label>选择姓名</label>
+                <select id="nameSelect">
+                    <option value="">请选择您的姓名</option>
+                    <option value="赵玄">赵玄</option>
+                    <option value="杨松楠">杨松楠</option>
+                    <option value="樊宏政">樊宏政</option>
+                    <option value="郑少翔">郑少翔</option>
+                    <option value="徐丽莎">徐丽莎</option>
+                    <option value="唐斌">唐斌</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>输入抽签码</label>
+                <input type="password" id="drawCode" placeholder="请输入4-6位抽签码" maxlength="6" autocomplete="off">
+            </div>
+
+            <button id="verifyBtn" class="btn" onclick="verifyUser()">验证身份</button>
+        </div>
+
+        <div id="drawSection" class="card hidden">
+            <h2 class="card-title">开始抽签</h2>
+            
+            <div class="result-section">
+                <div id="resultDisplay" class="result-display"></div>
+                <button id="drawBtn" class="btn" onclick="performDraw()">开始抽签</button>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="card">
+            <h2 class="card-title">抽签进度</h2>
+            
+            <div class="status-section">
+                <div id="statusGrid" class="status-grid"></div>
+            </div>
+
+            <div id="drawHistory" class="draw-history hidden">
+                <div class="history-title">抽取记录</div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const JSONBIN_BIN_ID = '6a0c25076610dd3ae86c1cf4';
+        const JSONBIN_API_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
+        const DRAW_CODES = {
+            '赵玄': '1234',
+            '杨松楠': '2345',
+            '樊宏政': '3456',
+            '郑少翔': '4567',
+            '徐丽莎': '5678',
+            '唐斌': '6789'
+        };
+
+        let appData = {
+            draws: [],
+            availableNumbers: [1, 2, 3, 4, 5, 6],
+            currentTurn: 0
+        };
+
+        let currentUser = null;
+        let isVerified = false;
+        let isDrawing = false;
+
+        async function init() {
+            showLoading(true);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('加载超时')), 10000)
+            );
+            
+            try {
+                await Promise.race([loadData(), timeoutPromise]);
+                updateStatusGrid();
+                updateHistory();
+            } catch (error) {
+                console.error('初始化失败:', error);
+                appData = {
+                    draws: [],
+                    availableNumbers: [1, 2, 3, 4, 5, 6],
+                    currentTurn: 0
+                };
+                showMessage('数据加载失败，将使用本地数据', 'warning');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch(JSONBIN_API_URL, {
+                    headers: {
+                        'X-Access-Key': '$2a$10$kCHgCrjPmRICf1Cz.JB6LuH8/wnewiFlNcJBsx1JbsSUbRdHIYWGS'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.record) {
+                        appData = result.record;
+                    }
+                } else if (response.status === 404) {
+                    await saveData();
+                }
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                appData = {
+                    draws: [],
+                    availableNumbers: [1, 2, 3, 4, 5, 6],
+                    currentTurn: 0
+                };
+            }
+        }
+
+        async function saveData() {
+            try {
+                const response = await fetch(JSONBIN_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Access-Key': '$2a$10$kCHgCrjPmRICf1Cz.JB6LuH8/wnewiFlNcJBsx1JbsSUbRdHIYWGS'
+                    },
+                    body: JSON.stringify(appData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    const errorMsg = errorData?.message || `HTTP ${response.status}`;
+                    console.error('保存失败:', response.status, errorMsg);
+                    throw new Error(`保存失败: ${errorMsg}`);
+                }
+                
+                const result = await response.json();
+                console.log('数据保存成功:', result);
+                showMessage('数据已同步到云端', 'success');
+            } catch (error) {
+                console.error('保存数据失败:', error);
+                showMessage('云端数据保存失败，数据仅保存在本地', 'warning');
+            }
+        }
+
+        function verifyUser() {
+            const name = document.getElementById('nameSelect').value;
+            const code = document.getElementById('drawCode').value;
+
+            if (!name) {
+                showMessage('请选择您的姓名', 'warning');
+                return;
+            }
+
+            if (!code || code.length < 4 || code.length > 6) {
+                showMessage('抽签码必须是4-6位数字', 'warning');
+                return;
+            }
+
+            if (DRAW_CODES[name] !== code) {
+                showMessage('抽签码错误，请重新输入', 'error');
+                document.getElementById('drawCode').value = '';
+                return;
+            }
+
+            const hasDrawn = appData.draws.find(d => d.name === name);
+            if (hasDrawn) {
+                showMessage('您已经完成抽签，您的编号是 ' + hasDrawn.number + ' 号', 'info');
+                currentUser = name;
+                isVerified = true;
+                showDrawSection(false, hasDrawn.number);
+                return;
+            }
+
+            const userIndex = ['赵玄', '杨松楠', '樊宏政', '郑少翔', '徐丽莎', '唐斌'].indexOf(name);
+            const expectedTurn = appData.draws.length;
+
+            if (userIndex > expectedTurn) {
+                const waitingFor = ['赵玄', '杨松楠', '樊宏政', '郑少翔', '徐丽莎', '唐斌'][expectedTurn];
+                showMessage(`请等待 ${waitingFor} 完成抽签后再进行`, 'info');
+                return;
+            }
+
+            if (userIndex < expectedTurn) {
+                showMessage('您已完成抽签，无需重复操作', 'info');
+                return;
+            }
+
+            currentUser = name;
+            isVerified = true;
+            showMessage('身份验证成功！', 'success');
+            showDrawSection();
+        }
+
+        function showDrawSection(canDraw = true, preDrawnNumber = null) {
+            const drawSection = document.getElementById('drawSection');
+            const drawBtn = document.getElementById('drawBtn');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            drawSection.classList.remove('hidden');
+            
+            if (preDrawnNumber !== null) {
+                resultDisplay.textContent = preDrawnNumber + ' 号';
+                drawBtn.textContent = '已完成抽签';
+                drawBtn.disabled = true;
+            } else if (!canDraw || appData.availableNumbers.length === 0) {
+                resultDisplay.textContent = '0 号';
+                drawBtn.textContent = '暂无法抽签';
+                drawBtn.disabled = true;
+            } else {
+                resultDisplay.textContent = '0 号';
+                drawBtn.textContent = '开始抽签';
+                drawBtn.disabled = false;
+            }
+        }
+
+        async function performDraw() {
+            if (isDrawing || appData.availableNumbers.length === 0) return;
+
+            isDrawing = true;
+            const drawBtn = document.getElementById('drawBtn');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            drawBtn.disabled = true;
+            resultDisplay.classList.add('result-animating');
+
+            const randomNumber = appData.availableNumbers[Math.floor(Math.random() * appData.availableNumbers.length)];
+
+            let count = 0;
+            const maxCount = 20;
+            const interval = setInterval(() => {
+                const tempNumber = appData.availableNumbers[Math.floor(Math.random() * appData.availableNumbers.length)];
+                resultDisplay.textContent = tempNumber + ' 号';
+                count++;
+
+                if (count >= maxCount) {
+                    clearInterval(interval);
+                    resultDisplay.textContent = randomNumber + ' 号';
+                    resultDisplay.classList.remove('result-animating');
+                    
+                    appData.draws.push({
+                        name: currentUser,
+                        number: randomNumber,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    appData.availableNumbers = appData.availableNumbers.filter(n => n !== randomNumber);
+                    
+                    saveData();
+                    updateStatusGrid();
+                    updateHistory();
+                    
+                    drawBtn.textContent = '抽签完成';
+                    showMessage(`恭喜 ${currentUser}，您抽到了 ${randomNumber} 号！`, 'success');
+                    
+                    isDrawing = false;
+                }
+            }, 100);
+        }
+
+        function updateStatusGrid() {
+            const names = ['赵玄', '杨松楠', '樊宏政', '郑少翔', '徐丽莎', '唐斌'];
+            const statusGrid = document.getElementById('statusGrid');
+            
+            statusGrid.innerHTML = names.map((name, index) => {
+                const draw = appData.draws.find(d => d.name === name);
+                const isCurrent = index === appData.draws.length && !draw;
+                
+                let className = 'status-item';
+                if (draw) className += ' drawn';
+                if (isCurrent) className += ' current';
+                
+                return `
+                    <div class="${className}">
+                        <div class="status-name">${name}</div>
+                        ${draw ? `<div class="status-number">${draw.number}</div>` : 
+                          isCurrent ? '<div class="status-empty">等待中</div>' : 
+                          '<div class="status-empty">未抽</div>'}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            const drawHistory = document.getElementById('drawHistory');
+
+            if (appData.draws.length === 0) {
+                drawHistory.classList.add('hidden');
+                return;
+            }
+
+            drawHistory.classList.remove('hidden');
+            historyList.innerHTML = appData.draws
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .map(draw => `
+                    <div class="history-item">
+                        ${draw.name}<span>${draw.number}号</span>
+                    </div>
+                `).join('');
+        }
+
+        function showMessage(text, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('nameSelect').addEventListener('change', () => {
+            if (isVerified) {
+                isVerified = false;
+                document.getElementById('drawSection').classList.add('hidden');
+                document.getElementById('drawCode').value = '';
+            }
+        });
+
+        document.getElementById('drawCode').addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+            if (isVerified) {
+                isVerified = false;
+                document.getElementById('drawSection').classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            
+            document.getElementById('verifyBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                verifyUser();
+            });
+            
+            document.getElementById('drawBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                performDraw();
+            });
+        });
+    </script>
+</body>
+</html>
